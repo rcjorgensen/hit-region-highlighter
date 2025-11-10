@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Hit Region Highlighter",
+  "version": "1.0.0",
+  "description": "Visualizes the hit regions of interactive elements when selected or hovered in DevTools",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content-loader.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "devtools_page": "src/devtools/devtools.html",
+  "options_page": "src/options/options.html",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/content.js",
+        "src/ConfigurationManager.js",
+        "src/CanvasRenderer.js",
+        "src/HitRegionCalculator.js",
+        "src/InteractiveElementFinder.js",
+        "src/ElementIdentifier.js",
+        "src/models/Coordinate.js",
+        "src/models/HitRegionMap.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

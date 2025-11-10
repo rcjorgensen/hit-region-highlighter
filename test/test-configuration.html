@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuration Test - Hit Region Highlighter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #333;
+    }
+    
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
+    
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    
+    button:hover {
+      background-color: #0056b3;
+    }
+    
+    .config-display {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      margin: 10px 0;
+    }
+    
+    .config-item {
+      margin: 5px 0;
+    }
+    
+    .config-label {
+      color: #9cdcfe;
+      font-weight: bold;
+    }
+    
+    .config-value {
+      color: #ce9178;
+    }
+    
+    .instructions {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    
+    .instructions ol {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    
+    .test-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Configuration Test Page</h1>
+  
+  <div class="test-section">
+    <h2>Current Configuration</h2>
+    <div class="config-display" id="configDisplay">
+      <div class="config-item">
+        <span class="config-label">samplingResolution:</span>
+        <span class="config-value" id="resolutionValue">Loading...</span>
+      </div>
+      <div class="config-item">
+        <span class="config-label">highlightColor:</span>
+        <span class="config-value" id="colorValue">Loading...</span>
+      </div>
+      <div class="config-item">
+        <span class="config-label">highlightOpacity:</span>
+        <span class="config-value" id="opacityValue">Loading...</span>
+      </div>
+      <div class="config-item">
+        <span class="config-label">autoRecalculate:</span>
+        <span class="config-value" id="autoRecalcValue">Loading...</span>
+      </div>
+    </div>
+    <button onclick="refreshConfig()">Refresh Configuration</button>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test Elements</h2>
+    <p>Select these elements in DevTools to test visualization:</p>
+    <div class="test-buttons">
+      <button id="test-btn-1">Test Button 1</button>
+      <button id="test-btn-2">Test Button 2</button>
+      <button id="test-btn-3">Test Button 3</button>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test: Resolution Change</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Note the current resolution value above</li>
+        <li>Open Settings (from Hit Regions panel)</li>
+        <li>Change sampling resolution (e.g., from 10 to 20)</li>
+        <li>Click "Save Settings"</li>
+        <li>Come back to this page</li>
+        <li>Click "Refresh Configuration" button</li>
+        <li>Check console for recalculation message</li>
+      </ol>
+      <strong>Expected Result:</strong>
+      <ul>
+        <li>✅ Configuration value updates</li>
+        <li>✅ Console shows: "Configuration changed"</li>
+        <li>✅ Console shows: "Calculating hit regions..."</li>
+        <li>✅ New calculation completes</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test: Color Change</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Select a test button above in DevTools (visualization should appear)</li>
+        <li>Note the current color (should be green #00ff00)</li>
+        <li>Open Settings</li>
+        <li>Change highlight color to red (#ff0000)</li>
+        <li>Click "Save Settings"</li>
+        <li>Look at the visualization on this page</li>
+      </ol>
+      <strong>Expected Result:</strong>
+      <ul>
+        <li>✅ Visualization color changes from green to red</li>
+        <li>✅ Console shows: "Configuration changed"</li>
+        <li>✅ Console shows: "Updating visualization with new color/opacity"</li>
+        <li>✅ NO recalculation occurs (color change only)</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test: Opacity Change</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Select a test button in DevTools (visualization should appear)</li>
+        <li>Note the current opacity (should be 30%)</li>
+        <li>Open Settings</li>
+        <li>Change highlight opacity to 70%</li>
+        <li>Click "Save Settings"</li>
+        <li>Look at the visualization on this page</li>
+      </ol>
+      <strong>Expected Result:</strong>
+      <ul>
+        <li>✅ Visualization becomes more opaque</li>
+        <li>✅ Console shows: "Configuration changed"</li>
+        <li>✅ Console shows: "Updating visualization with new color/opacity"</li>
+        <li>✅ NO recalculation occurs (opacity change only)</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test: Auto-Recalculate Toggle</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Open Settings</li>
+        <li>Uncheck "Auto-recalculate on page changes"</li>
+        <li>Click "Save Settings"</li>
+        <li>Come back to this page</li>
+        <li>Click "Add Dynamic Button" below</li>
+        <li>Wait 300ms - verify NO recalculation occurs</li>
+        <li>Open Settings again</li>
+        <li>Check "Auto-recalculate on page changes"</li>
+        <li>Click "Save Settings"</li>
+        <li>Click "Add Dynamic Button" again</li>
+        <li>Wait 300ms - verify recalculation DOES occur</li>
+      </ol>
+      <strong>Expected Result:</strong>
+      <ul>
+        <li>✅ When disabled: DOM changes don't trigger recalculation</li>
+        <li>✅ When enabled: DOM changes trigger recalculation</li>
+        <li>✅ Console shows appropriate messages</li>
+      </ul>
+    </div>
+    <button onclick="addDynamicButton()">Add Dynamic Button</button>
+    <div id="dynamicContainer"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test: Settings Persistence</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Change all settings to non-default values:
+          <ul>
+            <li>Resolution: 20</li>
+            <li>Color: #ff0000 (red)</li>
+            <li>Opacity: 70%</li>
+            <li>Auto-recalculate: unchecked</li>
+          </ul>
+        </li>
+        <li>Click "Save Settings"</li>
+        <li>Close this tab completely</li>
+        <li>Open this page again in a new tab</li>
+        <li>Click "Refresh Configuration"</li>
+        <li>Check that all values are still the custom values</li>
+      </ol>
+      <strong>Expected Result:</strong>
+      <ul>
+        <li>✅ All settings persist across browser sessions</li>
+        <li>✅ Configuration loads with saved values</li>
+        <li>✅ Settings are stored in chrome.storage.sync</li>
+      </ul>
+    </div>
+  </div>
+  
+  <script>
+    let buttonCount = 0;
+    
+    // Load and display current configuration
+    async function refreshConfig() {
+      try {
+        const result = await chrome.storage.sync.get('hitRegionConfig');
+        const config = result.hitRegionConfig || {
+          samplingResolution: 10,
+          highlightColor: '#00ff00',
+          highlightOpacity: 0.3,
+          autoRecalculate: true
+        };
+        
+        document.getElementById('resolutionValue').textContent = config.samplingResolution;
+        document.getElementById('colorValue').textContent = config.highlightColor;
+        document.getElementById('opacityValue').textContent = config.highlightOpacity;
+        document.getElementById('autoRecalcValue').textContent = config.autoRecalculate;
+        
+        console.log('Configuration refreshed:', config);
+      } catch (error) {
+        console.error('Failed to load configuration:', error);
+      }
+    }
+    
+    // Add dynamic button for testing
+    function addDynamicButton() {
+      buttonCount++;
+      const container = document.getElementById('dynamicContainer');
+      const button = document.createElement('button');
+      button.textContent = `Dynamic Button ${buttonCount}`;
+      button.id = `dynamic-btn-${buttonCount}`;
+      container.appendChild(button);
+      console.log('Added dynamic button:', button.id);
+    }
+    
+    // Listen for storage changes
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === 'sync' && changes.hitRegionConfig) {
+        console.log('Storage changed detected:', changes.hitRegionConfig);
+        refreshConfig();
+      }
+    });
+    
+    // Load configuration on page load
+    window.addEventListener('load', () => {
+      refreshConfig();
+      console.log('Configuration test page loaded');
+    });
+  </script>
+</body>
+</html>

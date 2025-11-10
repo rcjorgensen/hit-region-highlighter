@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Message Flow Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .test-section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
+    
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    
+    button:hover {
+      background-color: #0056b3;
+    }
+    
+    .log {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+    
+    .log-entry {
+      margin: 2px 0;
+      padding: 2px 0;
+    }
+    
+    .log-entry.success {
+      color: #4ec9b0;
+    }
+    
+    .log-entry.error {
+      color: #f48771;
+    }
+    
+    .log-entry.info {
+      color: #9cdcfe;
+    }
+    
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    
+    .status.pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <h1>Message Flow Test</h1>
+  <p>This page tests the message flow between DevTools, Background Script, and Content Script.</p>
+  
+  <div class="test-section">
+    <h2>Test Interactive Elements</h2>
+    <button id="test-button-1">Test Button 1</button>
+    <button id="test-button-2">Test Button 2</button>
+    <a href="#" id="test-link-1">Test Link 1</a>
+    <div role="button" tabindex="0" id="test-div-button" style="display: inline-block; padding: 10px 20px; background: #28a745; color: white; border-radius: 4px; cursor: pointer;">
+      Div with role="button"
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Manual Message Tests</h2>
+    <p>These buttons simulate messages from DevTools to test the communication flow:</p>
+    
+    <button onclick="testElementSelected()">Simulate Element Selected</button>
+    <button onclick="testElementDeselected()">Simulate Element Deselected</button>
+    <button onclick="testInvalidElement()">Test Invalid Element</button>
+    <button onclick="clearLog()">Clear Log</button>
+    
+    <div id="status" class="status pending">Status: Waiting for extension...</div>
+    <div class="log" id="log"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Instructions</h2>
+    <ol>
+      <li>Open DevTools (F12)</li>
+      <li>Navigate to the "Hit Regions" panel</li>
+      <li>Go to the "Elements" panel</li>
+      <li>Select one of the test buttons above</li>
+      <li>Watch the log below for message flow</li>
+      <li>Check the page for green visualization dots</li>
+    </ol>
+  </div>
+  
+  <script>
+    const logElement = document.getElementById('log');
+    const statusElement = document.getElementById('status');
+    
+    function log(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logElement.appendChild(entry);
+      logElement.scrollTop = logElement.scrollHeight;
+    }
+    
+    function setStatus(message, type = 'pending') {
+      statusElement.textContent = `Status: ${message}`;
+      statusElement.className = `status ${type}`;
+    }
+    
+    function clearLog() {
+      logElement.innerHTML = '';
+      log('Log cleared', 'info');
+    }
+    
+    // Listen for messages from the extension
+    window.addEventListener('message', (event) => {
+      if (event.data.source === 'hit-region-highlighter') {
+        log(`Received message: ${JSON.stringify(event.data)}`, 'info');
+      }
+    });
+    
+    // Test functions
+    function testElementSelected() {
+      const button = document.getElementById('test-button-1');
+      const elementId = {
+        type: 'css',
+        value: '#test-button-1'
+      };
+      
+      log('Simulating element selection...', 'info');
+      
+      // This would normally come from DevTools, but we can't simulate that directly
+      // Instead, we'll log what should happen
+      log('In real scenario:', 'info');
+      log('1. DevTools detects selection', 'info');
+      log('2. DevTools generates element identifier', 'info');
+      log('3. DevTools sends message to background script', 'info');
+      log('4. Background script forwards to content script', 'info');
+      log('5. Content script visualizes hit region', 'info');
+      
+      // Check if extension is loaded
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        log('Extension detected, checking for visualization...', 'success');
+        setTimeout(() => {
+          const canvas = document.querySelector('canvas');
+          if (canvas) {
+            log('✓ Canvas overlay found!', 'success');
+            setStatus('Visualization active', 'success');
+          } else {
+            log('✗ No canvas overlay found', 'error');
+            setStatus('No visualization', 'error');
+          }
+        }, 100);
+      } else {
+        log('Extension not detected', 'error');
+        setStatus('Extension not loaded', 'error');
+      }
+    }
+    
+    function testElementDeselected() {
+      log('Simulating element deselection...', 'info');
+      log('Should clear any active visualization', 'info');
+      
+      setTimeout(() => {
+        const canvas = document.querySelector('canvas');
+        if (!canvas || canvas.width === 0) {
+          log('✓ Visualization cleared', 'success');
+          setStatus('Visualization cleared', 'success');
+        } else {
+          log('✗ Visualization still active', 'error');
+          setStatus('Visualization not cleared', 'error');
+        }
+      }, 100);
+    }
+    
+    function testInvalidElement() {
+      log('Testing invalid element identifier...', 'info');
+      log('Should handle gracefully without errors', 'info');
+      
+      const invalidId = {
+        type: 'css',
+        value: '#non-existent-element-12345'
+      };
+      
+      log(`Invalid selector: ${invalidId.value}`, 'info');
+      log('Extension should log warning and not crash', 'info');
+    }
+    
+    // Monitor for canvas overlay creation
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.tagName === 'CANVAS') {
+            log('✓ Canvas overlay created!', 'success');
+            log(`Canvas size: ${node.width}x${node.height}`, 'info');
+            log(`Canvas z-index: ${node.style.zIndex}`, 'info');
+            log(`Canvas pointer-events: ${node.style.pointerEvents}`, 'info');
+            setStatus('Visualization active', 'success');
+          }
+        });
+        
+        mutation.removedNodes.forEach((node) => {
+          if (node.tagName === 'CANVAS') {
+            log('✓ Canvas overlay removed', 'success');
+            setStatus('Visualization cleared', 'success');
+          }
+        });
+      });
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: false
+    });
+    
+    // Check if extension is loaded on page load
+    window.addEventListener('load', () => {
+      log('Page loaded', 'info');
+      
+      setTimeout(() => {
+        // Check for extension console messages
+        log('Checking for extension...', 'info');
+        
+        // The extension should have logged to console
+        log('Check browser console for extension messages:', 'info');
+        log('- "Hit Region Highlighter: Content script loaded"', 'info');
+        log('- "Initializing Hit Region Highlighter..."', 'info');
+        log('- "Configuration loaded:"', 'info');
+        log('- "Calculating hit regions..."', 'info');
+        log('- "Hit regions calculated:"', 'info');
+        
+        setStatus('Ready - Select an element in DevTools', 'success');
+      }, 1000);
+    });
+    
+    // Log initial state
+    log('Message Flow Test initialized', 'success');
+    log('Waiting for extension to load...', 'info');
+  </script>
+</body>
+</html>

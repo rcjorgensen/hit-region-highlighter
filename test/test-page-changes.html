@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Change Detection Test - Hit Region Highlighter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #333;
+    }
+    
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
+    
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    
+    button:hover {
+      background-color: #0056b3;
+    }
+    
+    .instructions {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    
+    .expected {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    
+    .console-output {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      margin: 10px 0;
+    }
+    
+    #dynamicContainer {
+      min-height: 50px;
+      padding: 10px;
+      background: #e9ecef;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    
+    .timer {
+      display: inline-block;
+      padding: 5px 10px;
+      background: #17a2b8;
+      color: white;
+      border-radius: 3px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Page Change Detection Test</h1>
+  <p>This page tests that DOM changes, viewport resize, and CSS changes trigger recalculation.</p>
+  
+  <div class="test-section">
+    <h2>Test 1: DOM Changes (Add Elements)</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Open DevTools Console</li>
+        <li>Click "Add Button" below</li>
+        <li>Wait for timer to reach 0 (300ms debounce)</li>
+        <li>Check console for messages</li>
+      </ol>
+    </div>
+    <button onclick="addButton()">Add Button</button>
+    <button onclick="addMultipleButtons()">Add 5 Buttons (Test Debouncing)</button>
+    <span id="addTimer" class="timer" style="display: none;">300ms</span>
+    <div id="dynamicContainer"></div>
+    <div class="expected">
+      <strong>Expected Console Output:</strong>
+      <div class="console-output">
+Relevant DOM mutations detected<br>
+Debounced mutation handler triggered<br>
+Page changes detected, handling...<br>
+Hit region map invalidated<br>
+Auto-recalculate enabled, recalculating hit regions...<br>
+Calculating hit regions...<br>
+Hit regions calculated: X elements, Y coordinates in Zms
+      </div>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 2: DOM Changes (Remove Elements)</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>First add some buttons using Test 1</li>
+        <li>Click "Remove Last Button"</li>
+        <li>Wait 300ms</li>
+        <li>Check console for recalculation</li>
+      </ol>
+    </div>
+    <button onclick="removeButton()">Remove Last Button</button>
+    <span id="removeTimer" class="timer" style="display: none;">300ms</span>
+    <div class="expected">
+      <strong>Expected:</strong> Same recalculation messages as Test 1
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 3: Debouncing (Multiple Rapid Changes)</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Click "Add 5 Buttons" from Test 1</li>
+        <li>This adds 5 buttons rapidly (within 100ms)</li>
+        <li>Watch console - should see only ONE recalculation</li>
+        <li>Timer shows debounce countdown</li>
+      </ol>
+    </div>
+    <div class="expected">
+      <strong>Expected:</strong>
+      <ul>
+        <li>✅ Multiple "Relevant DOM mutations detected" messages</li>
+        <li>✅ Only ONE "Debounced mutation handler triggered"</li>
+        <li>✅ Only ONE recalculation occurs</li>
+        <li>✅ Debouncing prevents excessive recalculation</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 4: Viewport Resize</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Open DevTools Console</li>
+        <li>Resize the browser window (drag window edge)</li>
+        <li>Wait 200ms (resize debounce)</li>
+        <li>Check console for messages</li>
+      </ol>
+    </div>
+    <button onclick="simulateResize()">Simulate Resize (programmatic)</button>
+    <span id="resizeTimer" class="timer" style="display: none;">200ms</span>
+    <div class="expected">
+      <strong>Expected Console Output:</strong>
+      <div class="console-output">
+Viewport resize detected<br>
+Debounced resize handler triggered<br>
+Page changes detected, handling...<br>
+Calculating hit regions...
+      </div>
+      <strong>Note:</strong> Programmatic resize may not trigger ResizeObserver. Manual window resize is more reliable.
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 5: CSS Changes (pointer-events)</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Click "Disable Pointer Events" below</li>
+        <li>Wait 300ms</li>
+        <li>Check console for recalculation</li>
+        <li>Select the test button in DevTools</li>
+        <li>Verify it has NO hit region (pointer-events: none)</li>
+      </ol>
+    </div>
+    <button id="cssTestButton">CSS Test Button</button>
+    <button onclick="disablePointerEvents()">Disable Pointer Events</button>
+    <button onclick="enablePointerEvents()">Enable Pointer Events</button>
+    <span id="cssTimer" class="timer" style="display: none;">300ms</span>
+    <div class="expected">
+      <strong>Expected:</strong>
+      <ul>
+        <li>✅ Style change detected (style attribute mutation)</li>
+        <li>✅ Recalculation triggered</li>
+        <li>✅ Button with pointer-events: none has no hit region</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 6: CSS Changes (position/display)</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Click "Change Position" below</li>
+        <li>Wait 300ms</li>
+        <li>Check console for recalculation</li>
+      </ol>
+    </div>
+    <button id="positionTestButton">Position Test Button</button>
+    <button onclick="changePosition()">Change Position</button>
+    <button onclick="changeDisplay()">Toggle Display</button>
+    <span id="positionTimer" class="timer" style="display: none;">300ms</span>
+    <div class="expected">
+      <strong>Expected:</strong> Position and display changes trigger recalculation
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 7: Class Changes</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Click "Toggle Class" below</li>
+        <li>Wait 300ms</li>
+        <li>Check console for recalculation</li>
+      </ol>
+    </div>
+    <button id="classTestButton">Class Test Button</button>
+    <button onclick="toggleClass()">Toggle Class</button>
+    <span id="classTimer" class="timer" style="display: none;">300ms</span>
+    <div class="expected">
+      <strong>Expected:</strong> Class changes trigger recalculation (may affect computed styles)
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 8: Role Attribute Changes</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Click "Change Role" below</li>
+        <li>Wait 300ms</li>
+        <li>Check console for recalculation</li>
+        <li>Select the div in DevTools - should have hit region when role="button"</li>
+      </ol>
+    </div>
+    <div id="roleTestDiv" style="display: inline-block; padding: 10px 20px; background: #28a745; color: white; border-radius: 4px; cursor: pointer;">
+      Role Test Div (no role)
+    </div>
+    <button onclick="setRoleButton()">Set role="button"</button>
+    <button onclick="removeRole()">Remove role</button>
+    <span id="roleTimer" class="timer" style="display: none;">300ms</span>
+    <div class="expected">
+      <strong>Expected:</strong>
+      <ul>
+        <li>✅ Role changes trigger recalculation</li>
+        <li>✅ Div with role="button" becomes interactive</li>
+        <li>✅ Div without role is not interactive</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 9: Element Removal During Selection</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Add a button using Test 1</li>
+        <li>Select that button in DevTools (visualization should appear)</li>
+        <li>Click "Remove Last Button"</li>
+        <li>Check console and page</li>
+      </ol>
+    </div>
+    <div class="expected">
+      <strong>Expected:</strong>
+      <ul>
+        <li>✅ Visualization clears when element is removed</li>
+        <li>✅ Console shows: "Currently selected element was removed from DOM"</li>
+        <li>✅ No errors occur</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 10: Auto-Recalculate Disabled</h2>
+    <div class="instructions">
+      <strong>Test Steps:</strong>
+      <ol>
+        <li>Open Settings</li>
+        <li>Uncheck "Auto-recalculate on page changes"</li>
+        <li>Save settings</li>
+        <li>Come back to this page</li>
+        <li>Add a button using Test 1</li>
+        <li>Wait 300ms</li>
+        <li>Check console</li>
+      </ol>
+    </div>
+    <div class="expected">
+      <strong>Expected:</strong>
+      <ul>
+        <li>✅ Mutations are detected</li>
+        <li>✅ Console shows: "Auto-recalculate disabled, skipping recalculation"</li>
+        <li>✅ NO recalculation occurs</li>
+        <li>✅ Visualization is cleared</li>
+      </ul>
+    </div>
+  </div>
+  
+  <script>
+    let buttonCount = 0;
+    let timers = {};
+    
+    function showTimer(id, duration) {
+      const timer = document.getElementById(id);
+      timer.style.display = 'inline-block';
+      let remaining = duration;
+      timer.textContent = remaining + 'ms';
+      
+      const interval = setInterval(() => {
+        remaining -= 10;
+        if (remaining <= 0) {
+          clearInterval(interval);
+          timer.style.display = 'none';
+        } else {
+          timer.textContent = remaining + 'ms';
+        }
+      }, 10);
+    }
+    
+    function addButton() {
+      buttonCount++;
+      const container = document.getElementById('dynamicContainer');
+      const button = document.createElement('button');
+      button.textContent = `Dynamic Button ${buttonCount}`;
+      button.id = `dynamic-btn-${buttonCount}`;
+      container.appendChild(button);
+      console.log('Added button:', button.id);
+      showTimer('addTimer', 300);
+    }
+    
+    function addMultipleButtons() {
+      console.log('Adding 5 buttons rapidly to test debouncing...');
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => addButton(), i * 20); // Add every 20ms
+      }
+      showTimer('addTimer', 300);
+    }
+    
+    function removeButton() {
+      const container = document.getElementById('dynamicContainer');
+      if (container.lastChild) {
+        const removed = container.lastChild;
+        console.log('Removing button:', removed.id || removed.textContent);
+        container.removeChild(removed);
+        showTimer('removeTimer', 300);
+      } else {
+        console.log('No buttons to remove');
+      }
+    }
+    
+    function simulateResize() {
+      console.log('Simulating resize (note: programmatic resize may not trigger ResizeObserver)');
+      window.dispatchEvent(new Event('resize'));
+      showTimer('resizeTimer', 200);
+    }
+    
+    function disablePointerEvents() {
+      const button = document.getElementById('cssTestButton');
+      button.style.pointerEvents = 'none';
+      button.style.opacity = '0.5';
+      console.log('Disabled pointer events on CSS test button');
+      showTimer('cssTimer', 300);
+    }
+    
+    function enablePointerEvents() {
+      const button = document.getElementById('cssTestButton');
+      button.style.pointerEvents = '';
+      button.style.opacity = '';
+      console.log('Enabled pointer events on CSS test button');
+      showTimer('cssTimer', 300);
+    }
+    
+    function changePosition() {
+      const button = document.getElementById('positionTestButton');
+      if (button.style.position === 'relative') {
+        button.style.position = '';
+        button.style.left = '';
+      } else {
+        button.style.position = 'relative';
+        button.style.left = '20px';
+      }
+      console.log('Changed position of button');
+      showTimer('positionTimer', 300);
+    }
+    
+    function changeDisplay() {
+      const button = document.getElementById('positionTestButton');
+      if (button.style.display === 'none') {
+        button.style.display = '';
+      } else {
+        button.style.display = 'none';
+      }
+      console.log('Toggled display of button');
+      showTimer('positionTimer', 300);
+    }
+    
+    function toggleClass() {
+      const button = document.getElementById('classTestButton');
+      button.classList.toggle('test-class');
+      console.log('Toggled class on button');
+      showTimer('classTimer', 300);
+    }
+    
+    function setRoleButton() {
+      const div = document.getElementById('roleTestDiv');
+      div.setAttribute('role', 'button');
+      div.setAttribute('tabindex', '0');
+      div.textContent = 'Role Test Div (role="button")';
+      console.log('Set role="button" on div');
+      showTimer('roleTimer', 300);
+    }
+    
+    function removeRole() {
+      const div = document.getElementById('roleTestDiv');
+      div.removeAttribute('role');
+      div.removeAttribute('tabindex');
+      div.textContent = 'Role Test Div (no role)';
+      console.log('Removed role from div');
+      showTimer('roleTimer', 300);
+    }
+    
+    // Log page load
+    console.log('Page change detection test page loaded');
+    console.log('Open DevTools Console to see mutation/resize detection messages');
+  </script>
+</body>
+</html>
