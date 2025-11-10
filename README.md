@@ -194,4 +194,4 @@ Coordinates all components and handles communication with DevTools:
 
 ## License
 
-[Add your license here]
+MIT
